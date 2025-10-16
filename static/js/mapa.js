@@ -35,7 +35,14 @@ const layoutConfig = [
 ];
 
 function inicializarLayoutMapa() {
+    console.log("Inicializando mapa del estacionamiento...");
     const parkingLayout = document.getElementById('parkingLayout');
+    
+    if (!parkingLayout) {
+        console.error("No se encontró el elemento parkingLayout");
+        return;
+    }
+    
     parkingLayout.innerHTML = ''; // Limpiar
     
     layoutConfig.forEach((columna, index) => {
@@ -64,22 +71,35 @@ function inicializarLayoutMapa() {
         
         parkingLayout.appendChild(columnaElement);
     });
+    
+    console.log("Mapa inicializado correctamente");
 }
 
 function actualizarEstadoMapa() {
     fetch('/estado_espacios')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
         .then(espacios => {
             const totalEspacios = espacios.length;
             let libres = 0;
+            let ocupados = 0;
+            let reservados = 0;
             
-            // Actualizar cada espacio (los IDs en el backend son 0-based)
             espacios.forEach(espacio => {
                 const elemento = document.getElementById(`space-${espacio.id + 1}`);
                 if (elemento) {
-                    if (espacio.ocupado) {
+                    if (espacio.reservado) {
+                        elemento.className = 'parking-space-compact reservado';
+                        elemento.querySelector('.space-status-compact').textContent = 'RESERVADO';
+                        reservados++;
+                    } else if (espacio.ocupado) {
                         elemento.className = 'parking-space-compact ocupado';
                         elemento.querySelector('.space-status-compact').textContent = 'OCUPADO';
+                        ocupados++;
                     } else {
                         elemento.className = 'parking-space-compact libre';
                         elemento.querySelector('.space-status-compact').textContent = 'LIBRE';
@@ -88,10 +108,9 @@ function actualizarEstadoMapa() {
                 }
             });
             
-            const ocupados = totalEspacios - libres;
             const porcentaje = totalEspacios > 0 ? Math.round((libres / totalEspacios) * 100) : 0;
             
-            // Actualizar estadísticas en sidebar
+            // Actualizar estadísticas
             document.getElementById('totalSide').textContent = totalEspacios;
             document.getElementById('libresSide').textContent = libres;
             document.getElementById('ocupadosSide').textContent = ocupados;
@@ -100,12 +119,24 @@ function actualizarEstadoMapa() {
             // Actualizar hora
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error al actualizar estado:', error);
+            // Mostrar datos de prueba si hay error
+            document.getElementById('totalSide').textContent = '69';
+            document.getElementById('libresSide').textContent = '?';
+            document.getElementById('ocupadosSide').textContent = '?';
+            document.getElementById('porcentajeSide').textContent = '?%';
+        });
 }
 
-// Inicializar layout y empezar actualizaciones
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM cargado, inicializando mapa...");
     inicializarLayoutMapa();
-    setInterval(actualizarEstadoMapa, 1000);
-    actualizarEstadoMapa();
+    
+    // Actualizar cada 2 segundos
+    setInterval(actualizarEstadoMapa, 2000);
+    
+    // Primera actualización inmediata
+    setTimeout(actualizarEstadoMapa, 1000);
 });

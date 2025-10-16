@@ -99,6 +99,10 @@
                             <div class="legend-color ocupado me-3"></div>
                             <span>Espacio Ocupado</span>
                         </div>
+                        <div class="legend-item d-flex align-items-center mb-3">
+                            <div class="legend-color reservado me-3"></div>
+                            <span>Espacio Reservado</span>
+                        </div>
                         <div class="legend-item d-flex align-items-center">
                             <div class="legend-color pista me-3"></div>
                             <span>Pista de Circulación</span>
@@ -120,7 +124,7 @@
                     </div>
                     <div class="card-body">
                         <div class="parking-layout-compact" id="parkingLayout">
-                            <!-- Mapa se genera automáticamente -->
+                            <!-- Mapa se genera automáticamente con JavaScript -->
                         </div>
                         <div class="text-center mt-3 text-muted">
                             <small>Última actualización: <span id="lastUpdate">--:--:--</span></small>
@@ -134,5 +138,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Cargar el JavaScript específico del mapa -->
 <script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
 {% endblock %}

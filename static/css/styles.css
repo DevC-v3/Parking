@@ -543,3 +543,406 @@
         margin-bottom: 20px;
     }
 }
+
+/* Estilos para la nueva opción de reservas en navbar */
+.navbar-nav .nav-link {
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--airbnb-primary) !important;
+    transform: translateY(-1px);
+}
+
+/* Estilo para el ícono de reservas */
+.bi-calendar-check {
+    color: var(--airbnb-secondary);
+}
+
+/* Efecto hover para el ítem de reservas */
+#btnNavReservas:hover .bi-calendar-check {
+    color: var(--airbnb-primary);
+}
+
+/* Dropdown styles */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, var(--airbnb-primary), var(--airbnb-accent));
+    color: white;
+}
+
+/* Badge para mostrar número de reservas activas (opcional) */
+.reservation-badge {
+    background: var(--airbnb-accent);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+}
+
+/* Estilos para formularios de autenticación */
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    background: white !important;
+    border-bottom: 2px solid var(--airbnb-border);
+}
+
+.form-control {
+    border: 2px solid var(--airbnb-border);
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--airbnb-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 90, 95, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--airbnb-dark);
+    margin-bottom: 8px;
+}
+
+.form-text {
+    color: var(--airbnb-light);
+    font-size: 0.85em;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--airbnb-primary), var(--airbnb-accent));
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 90, 95, 0.4);
+}
+
+/* Enlaces */
+.text-primary {
+    color: var(--airbnb-primary) !important;
+}
+
+.text-primary:hover {
+    color: var(--airbnb-accent) !important;
+}
+
+/* Alertas */
+.alert {
+    border: none;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border-left-color: var(--airbnb-secondary);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border-left-color: #dc3545;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+    border-left-color: #ffc107;
+}
+
+/* Estilos para espacios reservados */
+.parking-space-compact.reservado {
+    background: linear-gradient(135deg, #2196F3, #1976D2) !important;
+    border-color: #1565C0 !important;
+    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3) !important;
+}
+
+.legend-color.reservado {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+/* Modal de reservas */
+.reservation-modal .modal-header {
+    background: linear-gradient(135deg, var(--airbnb-primary), var(--airbnb-accent));
+    color: white;
+}
+
+.reservation-duration {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.duration-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--airbnb-border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: 500;
+}
+
+.duration-btn:hover {
+    border-color: var(--airbnb-primary);
+    transform: translateY(-2px);
+}
+
+.duration-btn.active {
+    border-color: var(--airbnb-primary);
+    background: var(--airbnb-primary);
+    color: white;
+}
+
+/* Lista de reservas */
+.reservation-item {
+    padding: 15px;
+    border: 1px solid var(--airbnb-border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.reservation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.reservation-item.active {
+    border-left: 4px solid var(--airbnb-secondary);
+}
+
+.reservation-item.expired {
+    border-left: 4px solid var(--airbnb-light);
+    opacity: 0.7;
+}
+
+.reservation-space {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--airbnb-dark);
+    margin-bottom: 5px;
+}
+
+.reservation-time {
+    color: var(--airbnb-light);
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+/* Alertas flotantes */
+.alert.position-fixed {
+    animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Botones de cancelación */
+.btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilos específicos para página de reservas */
+.parking-layout-reservas {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    margin: 0 auto;
+}
+
+.columna-reservas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.parking-space-reservas {
+    height: 50px;
+    background: #bdc3c7;
+    border: 2px solid #7f8c8d;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 70px;
+}
+
+.parking-space-reservas:hover {
+    transform: scale(1.05);
+}
+
+.parking-space-reservas.selected {
+    border: 3px solid #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.parking-space-reservas.libre {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border-color: #27ae60;
+}
+
+.parking-space-reservas.ocupado {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+    cursor: not-allowed;
+}
+
+.parking-space-reservas.reservado {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    border-color: #1565C0;
+    cursor: not-allowed;
+}
+
+.pista-reservas {
+    background: linear-gradient(45deg, #34495e, #2c3e50) !important;
+    border: 2px dashed #ecf0f1 !important;
+    color: white;
+    font-weight: bold;
+    height: 70px;
+    cursor: default;
+}
+
+.space-number-reservas {
+    font-weight: bold;
+    color: white;
+    font-size: 0.9em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.space-status-reservas {
+    font-size: 0.6em;
+    color: white;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.pista-text-reservas {
+    font-size: 0.8em;
+    color: #ecf0f1;
+    text-align: center;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+}
+
+/* Preview del espacio seleccionado */
+.space-preview {
+    display: flex;
+    justify-content: center;
+}
+
+.parking-space-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid;
+}
+
+.parking-space-preview.libre {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border-color: #27ae60;
+}
+
+.space-number-preview {
+    font-weight: bold;
+    color: white;
+    font-size: 1.2em;
+}
+
+.space-status-preview {
+    font-size: 0.7em;
+    color: white;
+    opacity: 0.9;
+}
+
+/* Opciones de duración */
+.duration-options {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.form-check-input:checked {
+    background-color: var(--airbnb-primary);
+    border-color: var(--airbnb-primary);
+}
+
+/* Reservas activas */
+.reservation-item-reserva {
+    padding: 12px;
+    border: 1px solid var(--airbnb-border);
+    border-radius: 6px;
+    background: white;
+}
+
+.reservation-item-reserva.active {
+    border-left: 4px solid var(--airbnb-secondary);
+}
+
+.reservation-space-reserva {
+    font-weight: bold;
+    color: var(--airbnb-dark);
+}
+
+.reservation-time-reserva {
+    font-size: 0.85em;
+    color: var(--airbnb-light);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .parking-layout-reservas {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

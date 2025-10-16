@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Reservar Espacio - Parking Intelligence{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 mb-2">
+                        <i class="bi bi-calendar-check me-2"></i>Reservar Espacio
+                    </h1>
+                    <p class="mb-0">Selecciona un espacio disponible y reserva por el tiempo que necesites</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="badge bg-light text-dark fs-6">
+                        <i class="bi bi-clock me-1"></i>
+                        <span id="currentTime">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <div class="row">
+            <!-- Mapa de Reservas -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-map me-2 text-primary"></i>
+                            Mapa de Reservas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Instrucciones:</strong> Haz clic en un espacio <span class="badge bg-success">VERDE</span> 
+                            para reservarlo. Los espacios <span class="badge bg-danger">ROJO</span> están ocupados y 
+                            <span class="badge bg-primary">AZUL</span> están reservados.
+                        </div>
+                        
+                        <div class="parking-layout-reservas" id="parkingLayoutReservas">
+                            <!-- Mapa se genera automáticamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Reserva -->
+            <div class="col-lg-4">
+                <!-- Información del Espacio Seleccionado -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-geo-alt me-2 text-primary"></i>
+                            Espacio Seleccionado
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div id="noSpaceSelected" class="d-none">
+                            <i class="bi bi-mouse text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Selecciona un espacio disponible en el mapa</p>
+                        </div>
+                        
+                        <div id="spaceSelected" class="d-none">
+                            <div class="space-preview mb-3">
+                                <div class="parking-space-preview libre" id="previewSpace">
+                                    <div class="space-number-preview" id="previewSpaceNumber">0</div>
+                                    <div class="space-status-preview">DISPONIBLE</div>
+                                </div>
+                            </div>
+                            <h4>Espacio <span id="selectedSpaceNumber">--</span></h4>
+                            <p class="text-muted">Estado: <span id="selectedSpaceStatus" class="badge bg-success">DISPONIBLE</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario de Reserva -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clock me-2 text-primary"></i>
+                            Configurar Reserva
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="reservationForm">
+                            <div class="mb-3">
+                                <label class="form-label">Duración de la reserva:</label>
+                                <div class="duration-options">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="duration" id="duration1" value="1" checked>
+                                        <label class="form-check-label" for="duration1">
+                                            <i class="bi bi-clock me-1"></i>1 hora
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="duration" id="duration2" value="2">
+                                        <label class="form-check-label" for="duration2">
+                                            <i class="bi bi-clock me-1"></i>2 horas
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="duration" id="duration4" value="4">
+                                        <label class="form-check-label" for="duration4">
+                                            <i class="bi bi-clock me-1"></i>4 horas
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="reservation-summary mb-3 p-3 bg-light rounded">
+                                <h6>Resumen de la reserva:</h6>
+                                <div class="d-flex justify-content-between">
+                                    <span>Espacio:</span>
+                                    <strong id="summarySpace">--</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Duración:</span>
+                                    <strong id="summaryDuration">--</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Hora de fin:</span>
+                                    <strong id="summaryEndTime">--</strong>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2" id="btnReservar" disabled>
+                                <i class="bi bi-calendar-check me-2"></i>Confirmar Reserva
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Mis Reservas Activas -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-check me-2 text-primary"></i>
+                            Mis Reservas Activas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="reservationsList">
+                            <p class="text-center text-muted">Cargando reservas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">¡Reserva Confirmada!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Reserva exitosa</h4>
+                    <p>Has reservado el espacio <strong id="confirmedSpace">--</strong> por <strong id="confirmedDuration">--</strong></p>
+                    <p class="text-muted">La reserva estará activa hasta las <strong id="confirmedEndTime">--</strong></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a href="{{ url_for('mapa') }}" class="btn btn-primary">
+                    <i class="bi bi-map me-1"></i>Ver en Mapa
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reservas.js') }}"></script>
+{% endblock %}
