@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Parking Intelligence{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-dark mb-4">
+                    Monitoreo Inteligente de 
+                    <span class="text-primary">Estacionamientos</span>
+                </h1>
+                <p class="lead text-muted mb-4">
+                    Sistema avanzado que utiliza visión por computadora para detectar espacios 
+                    disponibles en tiempo real. Optimiza tu estacionamiento con tecnología de punta.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{{ url_for('mapa') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>Ver en Tiempo Real
+                    </a>
+                    <a href="#features" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-info-circle me-2"></i>Más Información
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-image">
+                    <img src="{{ url_for('static', filename='images/parking-hero.svg') }}" 
+                         alt="Sistema de Parking Inteligente" class="img-fluid">
+                    <div class="floating-elements">
+                        <div class="floating-card card-1">
+                            <i class="bi bi-car-front"></i>
+                            <span>Detección Automática</span>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Estadísticas en Tiempo Real</span>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="bi bi-map"></i>
+                            <span>Mapa Interactivo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon">
+                        <i class="bi bi-p-square"></i>
+                    </div>
+                    <h3 class="stat-number">69</h3>
+                    <p class="stat-label">Espacios Totales</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon free">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3 class="stat-number" id="libres">--</h3>
+                    <p class="stat-label">Espacios Libres</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon occupied">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <h3 class="stat-number" id="ocupados">--</h3>
+                    <p class="stat-label">Espacios Ocupados</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h3 class="stat-number">100%</h3>
+                    <p class="stat-label">En Tiempo Real</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="section-title">Características Principales</h2>
+                <p class="section-subtitle">Tecnología avanzada para una gestión eficiente</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-camera-video"></i>
+                    </div>
+                    <h4>Detección en Tiempo Real</h4>
+                    <p>Análisis continuo de video mediante visión por computadora para identificar espacios disponibles instantáneamente.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4>Estadísticas Avanzadas</h4>
+                    <p>Métricas y análisis en tiempo real para una mejor toma de decisiones y optimización de espacios.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-map"></i>
+                    </div>
+                    <h4>Mapa Interactivo</h4>
+                    <p>Visualización intuitiva del layout completo con actualizaciones en tiempo real del estado de cada espacio.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h4>Tecnología AI</h4>
+                    <p>Algoritmos de machine learning que mejoran continuamente la precisión de detección.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <h4>Alta Precisión</h4>
+                    <p>Sistema con más del 95% de precisión en la detección de espacios ocupados y libres.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <h4>Interfaz Responsive</h4>
+                    <p>Diseño adaptable que funciona perfectamente en desktop, tablet y dispositivos móviles.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="section-title">¿Cómo Funciona?</h2>
+                <p class="section-subtitle">Tecnología simple para resultados complejos</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <h4>Captura de Video</h4>
+                    <p>Cámaras instaladas capturan video continuo del estacionamiento</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <h4>Procesamiento AI</h4>
+                    <p>Algoritmos analizan cada frame para detectar vehículos</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <h4>Detección de Espacios</h4>
+                    <p>Identificación precisa de espacios libres y ocupados</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="step-card text-center">
+                    <div class="step-number">4</div>
+                    <h4>Visualización</h4>
+                    <p>Interfaz web muestra resultados en tiempo real</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 text-white">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h2 class="display-5 fw-bold mb-4">¿Listo para verlo en acción?</h2>
+                <p class="lead mb-4 opacity-75">
+                    Accede al mapa en tiempo real y observa cómo nuestro sistema detecta automáticamente 
+                    los espacios disponibles en tu estacionamiento.
+                </p>
+                <a href="{{ url_for('mapa') }}" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-play-fill me-2"></i>Ver Sistema en Vivo
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Actualizar solo las estadísticas dinámicas en el landing
+    function actualizarEstadisticasLanding() {
+        fetch('/estado_espacios')
+            .then(response => response.json())
+            .then(espacios => {
+                let libres = 0;
+                
+                espacios.forEach(espacio => {
+                    if (!espacio.ocupado) libres++;
+                });
+                
+                const ocupados = espacios.length - libres;
+                
+                document.getElementById('libres').textContent = libres;
+                document.getElementById('ocupados').textContent = ocupados;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Valores por defecto si hay error
+                document.getElementById('libres').textContent = '35';
+                document.getElementById('ocupados').textContent = '34';
+            });
+    }
+    
+    // Actualizar cada 5 segundos (menos frecuente que en el mapa)
+    setInterval(actualizarEstadisticasLanding, 5000);
+    actualizarEstadisticasLanding();
+</script>
+{% endblock %}

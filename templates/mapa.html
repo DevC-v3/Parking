@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa en Tiempo Real - Parking Intelligence{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 mb-2">
+                        <i class="bi bi-map me-2"></i>Mapa en Tiempo Real
+                    </h1>
+                    <p class="mb-0">Monitoreo activo de los 69 espacios del estacionamiento</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        SISTEMA ACTIVO
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Video Section -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-camera-video text-primary me-2"></i>
+                            Vista en Tiempo Real
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <img id="videoStream" src="{{ url_for('video_feed') }}" 
+                             class="img-fluid w-100" alt="Video en tiempo real">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Sidebar -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-speedometer2 text-primary me-2"></i>
+                            Estadísticas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="stat-mini-card total">
+                                    <div class="stat-mini-number" id="totalSide">0</div>
+                                    <div class="stat-mini-label">Total</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-mini-card free">
+                                    <div class="stat-mini-number" id="libresSide">0</div>
+                                    <div class="stat-mini-label">Libres</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-mini-card occupied">
+                                    <div class="stat-mini-number" id="ocupadosSide">0</div>
+                                    <div class="stat-mini-label">Ocupados</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-mini-card">
+                                    <div class="stat-mini-number" id="porcentajeSide">0%</div>
+                                    <div class="stat-mini-label">Disponible</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle text-primary me-2"></i>
+                            Leyenda
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="legend-item d-flex align-items-center mb-3">
+                            <div class="legend-color libre me-3"></div>
+                            <span>Espacio Libre</span>
+                        </div>
+                        <div class="legend-item d-flex align-items-center mb-3">
+                            <div class="legend-color ocupado me-3"></div>
+                            <span>Espacio Ocupado</span>
+                        </div>
+                        <div class="legend-item d-flex align-items-center">
+                            <div class="legend-color pista me-3"></div>
+                            <span>Pista de Circulación</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parking Map -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-layout-text-sidebar text-primary me-2"></i>
+                            Mapa del Estacionamiento
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="parking-layout-compact" id="parkingLayout">
+                            <!-- Mapa se genera automáticamente -->
+                        </div>
+                        <div class="text-center mt-3 text-muted">
+                            <small>Última actualización: <span id="lastUpdate">--:--:--</span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
+{% endblock %}

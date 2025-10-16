@@ -1,0 +1,16 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="50" y="50" width="300" height="200" rx="10" fill="#F8F9FA" stroke="#E9ECEF" stroke-width="2"/>
+    <!-- Espacios de parking -->
+    <rect x="70" y="70" width="40" height="60" rx="5" fill="#00A699" stroke="#00857A" stroke-width="1"/>
+    <rect x="120" y="70" width="40" height="60" rx="5" fill="#FF5A5F" stroke="#E04E52" stroke-width="1"/>
+    <rect x="170" y="70" width="40" height="60" rx="5" fill="#00A699" stroke="#00857A" stroke-width="1"/>
+    <rect x="220" y="70" width="40" height="60" rx="5" fill="#FF5A5F" stroke="#E04E52" stroke-width="1"/>
+    <rect x="270" y="70" width="40" height="60" rx="5" fill="#00A699" stroke="#00857A" stroke-width="1"/>
+    
+    <!-- Pista -->
+    <rect x="150" y="150" width="100" height="20" rx="5" fill="#484848" opacity="0.8"/>
+    
+    <!-- Carritos -->
+    <path d="M90 110 L100 110 L105 115 L95 115 Z" fill="#484848"/>
+    <path d="M240 110 L250 110 L255 115 L245 115 Z" fill="#484848"/>
+</svg>
