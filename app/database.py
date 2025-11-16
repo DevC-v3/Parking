@@ -1,167 +1,196 @@
-import sqlite3
 import os
 from datetime import datetime, timedelta
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship, Session
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Obtener el directorio base de la aplicación
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Configuración de SQLAlchemy
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+    
+    # Relación con reservas
+    reservations = relationship("Reservation", back_populates="user")
+
+class Reservation(Base):
+    __tablename__ = 'reservations'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    space_number = Column(Integer, nullable=False)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    status = Column(String(20), default='active')
+    created_at = Column(DateTime, default=datetime.now)
+    
+    # Relación con usuario
+    user = relationship("User", back_populates="reservations")
+
 class Database:
     def __init__(self, db_path=None):
         if db_path is None:
-            db_path = os.path.join(BASE_DIR, 'parking.db')
-        self.db_path = db_path
-        self.conn = sqlite3.connect(db_path, check_same_thread=False)
+            db_path = f"sqlite:///{os.path.join(BASE_DIR, 'parking.db')}"
+        
+        self.engine = create_engine(db_path, connect_args={"check_same_thread": False})
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.create_tables()
     
     def create_tables(self):
         """Crear tablas de usuarios y reservas si no existen"""
-        cursor = self.conn.cursor()
-        
-        # Tabla de usuarios
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Tabla de reservas
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS reservations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                space_number INTEGER NOT NULL,
-                start_time TIMESTAMP NOT NULL,
-                end_time TIMESTAMP NOT NULL,
-                status TEXT DEFAULT 'active',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        ''')
-        
-        self.conn.commit()
+        Base.metadata.create_all(bind=self.engine)
+    
+    def get_db(self) -> Session:
+        """Obtener sesión de base de datos"""
+        db = self.SessionLocal()
+        try:
+            return db
+        finally:
+            db.close()
     
     # ==================== USUARIOS ====================
     
     def create_user(self, username, password):
         """Crear nuevo usuario en la base de datos"""
+        db = self.get_db()
         try:
-            cursor = self.conn.cursor()
             hashed_pw = generate_password_hash(password)
-            cursor.execute(
-                'INSERT INTO users (username, password) VALUES (?, ?)', 
-                (username, hashed_pw)
-            )
-            self.conn.commit()
+            user = User(username=username, password=hashed_pw)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
             return True
-        except sqlite3.IntegrityError:
+        except IntegrityError:
+            db.rollback()
             return False
+        finally:
+            db.close()
     
     def authenticate_user(self, username, password):
         """Verificar credenciales de usuario"""
-        cursor = self.conn.cursor()
-        cursor.execute(
-            'SELECT id, password FROM users WHERE username = ?', 
-            (username,)
-        )
-        user = cursor.fetchone()
-        
-        if user and check_password_hash(user[1], password):
-            return user[0]  # user_id
-        return None
+        db = self.get_db()
+        try:
+            user = db.query(User).filter(User.username == username).first()
+            if user and check_password_hash(user.password, password):
+                return user.id  # user_id
+            return None
+        finally:
+            db.close()
     
     def get_user_by_id(self, user_id):
         """Obtener información de usuario por ID"""
-        cursor = self.conn.cursor()
-        cursor.execute(
-            'SELECT id, username FROM users WHERE id = ?', 
-            (user_id,)
-        )
-        user = cursor.fetchone()
-        return {'id': user[0], 'username': user[1]} if user else None
+        db = self.get_db()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            return {'id': user.id, 'username': user.username} if user else None
+        finally:
+            db.close()
     
     # ==================== RESERVAS ====================
     
     def create_reservation(self, user_id, space_number, duration_hours=1):
         """Crear nueva reserva de espacio"""
-        cursor = self.conn.cursor()
-        start_time = datetime.now()
-        end_time = start_time + timedelta(hours=duration_hours)
-        
-        # Verificar si el espacio ya está reservado
-        cursor.execute('''
-            SELECT id FROM reservations 
-            WHERE space_number = ? AND status = 'active' AND end_time > ?
-        ''', (space_number, start_time))
-        
-        if cursor.fetchone():
-            return False  # Espacio ya reservado
-        
-        # Crear la reserva
-        cursor.execute('''
-            INSERT INTO reservations (user_id, space_number, start_time, end_time)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, space_number, start_time, end_time))
-        
-        self.conn.commit()
-        return True
+        db = self.get_db()
+        try:
+            start_time = datetime.now()
+            end_time = start_time + timedelta(hours=duration_hours)
+            
+            # Verificar si el espacio ya está reservado
+            existing_reservation = db.query(Reservation).filter(
+                Reservation.space_number == space_number,
+                Reservation.status == 'active',
+                Reservation.end_time > start_time
+            ).first()
+            
+            if existing_reservation:
+                return False  # Espacio ya reservado
+            
+            # Crear la reserva
+            reservation = Reservation(
+                user_id=user_id,
+                space_number=space_number,
+                start_time=start_time,
+                end_time=end_time
+            )
+            db.add(reservation)
+            db.commit()
+            return True
+        finally:
+            db.close()
     
     def get_active_reservations(self):
         """Obtener lista de espacios actualmente reservados"""
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            SELECT space_number FROM reservations 
-            WHERE status = 'active' AND end_time > ?
-        ''', (datetime.now(),))
-        
-        return [row[0] for row in cursor.fetchall()]
+        db = self.get_db()
+        try:
+            reservations = db.query(Reservation.space_number).filter(
+                Reservation.status == 'active',
+                Reservation.end_time > datetime.now()
+            ).all()
+            return [row[0] for row in reservations]
+        finally:
+            db.close()
     
     def get_user_reservations(self, user_id):
         """Obtener todas las reservas de un usuario"""
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            SELECT id, space_number, start_time, end_time, status 
-            FROM reservations 
-            WHERE user_id = ? 
-            ORDER BY created_at DESC
-        ''', (user_id,))
-        
-        reservations = []
-        for res in cursor.fetchall():
-            reservations.append({
-                'id': res[0],
-                'space_number': res[1],
-                'start_time': res[2],
-                'end_time': res[3],
-                'status': res[4]
-            })
-        
-        return reservations
+        db = self.get_db()
+        try:
+            reservations = db.query(Reservation).filter(
+                Reservation.user_id == user_id
+            ).order_by(Reservation.created_at.desc()).all()
+            
+            result = []
+            for res in reservations:
+                result.append({
+                    'id': res.id,
+                    'space_number': res.space_number,
+                    'start_time': res.start_time,
+                    'end_time': res.end_time,
+                    'status': res.status
+                })
+            return result
+        finally:
+            db.close()
     
     def cancel_reservation(self, reservation_id, user_id):
         """Cancelar una reserva (solo si pertenece al usuario)"""
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            UPDATE reservations SET status = 'cancelled' 
-            WHERE id = ? AND user_id = ?
-        ''', (reservation_id, user_id))
-        
-        self.conn.commit()
-        return cursor.rowcount > 0
+        db = self.get_db()
+        try:
+            reservation = db.query(Reservation).filter(
+                Reservation.id == reservation_id,
+                Reservation.user_id == user_id
+            ).first()
+            
+            if reservation:
+                reservation.status = 'cancelled'
+                db.commit()
+                return True
+            return False
+        finally:
+            db.close()
     
     def cleanup_expired_reservations(self):
         """Limpiar reservas expiradas (puede ejecutarse periódicamente)"""
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            UPDATE reservations SET status = 'expired' 
-            WHERE status = 'active' AND end_time < ?
-        ''', (datetime.now(),))
-        
-        self.conn.commit()
-        return cursor.rowcount
+        db = self.get_db()
+        try:
+            result = db.query(Reservation).filter(
+                Reservation.status == 'active',
+                Reservation.end_time < datetime.now()
+            ).update({'status': 'expired'})
+            
+            db.commit()
+            return result
+        finally:
+            db.close()
 
 # Instancia global de la base de datos
 db = Database()
