@@ -4,11 +4,15 @@ import pickle
 import numpy as np
 import threading
 import time
-from database import db
-from auth import auth_bp, login_required
-from reservations import reservations_bp
+import os
+from .database import db
+from .auth import auth_bp, login_required
+from .reservations import reservations_bp
 
-app = Flask(__name__)
+# Obtener el directorio base de la aplicación
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'parking-intelligence-secret-key-2025'
 
 app.register_blueprint(auth_bp)
@@ -16,7 +20,7 @@ app.register_blueprint(reservations_bp)
 
 # Cargar polígonos de espacios en formato:
 # [ [(x1,y1),(x2,y2),(x3,y3),(x4,y4)], ... ]
-with open('espacios.pkl', 'rb') as file:
+with open(os.path.join(BASE_DIR, 'espacios.pkl'), 'rb') as file:
     estacionamientos = pickle.load(file)
 
 estado_espacios = [
@@ -26,7 +30,7 @@ estado_espacios = [
 
 class VideoProcessor:
     def __init__(self):
-        self.video = cv2.VideoCapture('video.mp4')
+        self.video = cv2.VideoCapture(os.path.join(BASE_DIR, 'video.mp4'))
         self.estado_actual = estado_espacios.copy()
 
     def generar_frames(self):
@@ -120,8 +124,3 @@ def get_estado_espacios():
 @login_required
 def reservas():
     return render_template('reservas.html')
-
-if __name__ == '__main__':
-    print("📍 Iniciando Parking Intelligence System...")
-    print("🔗 http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)

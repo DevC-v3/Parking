@@ -1,9 +1,15 @@
 import sqlite3
+import os
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Obtener el directorio base de la aplicación
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class Database:
-    def __init__(self, db_path='parking.db'):
+    def __init__(self, db_path=None):
+        if db_path is None:
+            db_path = os.path.join(BASE_DIR, 'parking.db')
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.create_tables()

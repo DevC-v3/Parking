@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
-from database import db
-from auth import login_required
+from .database import db
+from .auth import login_required
 
 # Crear Blueprint para reservas
 reservations_bp = Blueprint('reservations', __name__)

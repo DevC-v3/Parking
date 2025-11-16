@@ -1,7 +1,11 @@
 import cv2
 import pickle
+import os
 
-img = cv2.imread('estacionamiento.png')
+# Obtener el directorio base de la aplicación
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+img = cv2.imread(os.path.join(BASE_DIR, 'estacionamiento.png'))
 clone = img.copy()
 
 espacios = []          # Lista final: cada elemento = 4 puntos (un polígono)
@@ -49,7 +53,7 @@ while True:
         break
 
     if key == ord('s') or key == ord('S'):
-        with open('espacios.pkl', 'wb') as file:
+        with open(os.path.join(BASE_DIR, 'espacios.pkl'), 'wb') as file:
             pickle.dump(espacios, file)
         print("\n✅ Archivo 'espacios.pkl' guardado correctamente.")
         print(f"Total de espacios marcados: {len(espacios)}")

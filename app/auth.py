@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template
-from database import db
+from .database import db
 
 # Crear Blueprint para autenticación
 auth_bp = Blueprint('auth', __name__)

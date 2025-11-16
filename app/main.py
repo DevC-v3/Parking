@@ -1,13 +1,17 @@
 import cv2
 import pickle
 import numpy as np
+import os
+
+# Obtener el directorio base de la aplicación
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 estacionamientos = []
-with open('espacios.pkl', 'rb') as file:
+with open(os.path.join(BASE_DIR, 'espacios.pkl'), 'rb') as file:
     estacionamientos = pickle.load(file)
 
 # leer el video 
-video = cv2.VideoCapture('video.mp4')
+video = cv2.VideoCapture(os.path.join(BASE_DIR, 'video.mp4'))
 
 while True:
     check, img = video.read()
