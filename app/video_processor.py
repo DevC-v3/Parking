@@ -2,9 +2,7 @@ import cv2
 import numpy as np
 import threading
 import time
-import os
 from ultralytics import YOLO
-import torch
 
 class VideoProcessor:
     def __init__(self, video_path, estacionamientos, db, model_size='nano'):
@@ -15,174 +13,74 @@ class VideoProcessor:
                              for i in range(len(estacionamientos))]
         self.lock = threading.Lock()
         
-        # Inicializar YOLO con optimizaciones
-        self.model = self._inicializar_yolo(model_size)
+        # YOLO
+        self.model = YOLO('yolov8n.pt')
+        self.clases_vehiculos = [2, 3, 5, 7]  # coche, moto, autobús, camión
         
-        # Pre-calcular bounding boxes de los espacios
-        self.espacio_bboxes = self._precalcular_bboxes_espacios()
-        
-        # Optimizaciones de rendimiento
-        self.historial_detecciones = [[] for _ in range(len(estacionamientos))]
-        self.max_historial = 3
-        
-        # Variables para cache de detección
-        self.last_vehicles = []
-        self.last_ocupacion = [False] * len(self.espacio_bboxes)
-        self.detection_interval = 5
+        # Cache
+        self.ultimas_detecciones = []
         self.frame_count = 0
         
-        print(f"✅ YOLO {model_size} inicializado - Optimizado para velocidad")
+        print("✅ YOLO inicializado")
 
-    def _inicializar_yolo(self, model_size):
-        """Inicializa YOLO con optimizaciones de rendimiento"""
-        model_paths = {
-            'nano': 'yolov8n.pt',
-            'small': 'yolov8s.pt', 
-        }
-        
-        model_path = model_paths.get(model_size, 'yolov8n.pt')
-        model = YOLO(model_path)
-        
-        # Optimizaciones para CPU
-        if not torch.cuda.is_available():
-            torch.set_num_threads(1)
-        
-        return model
-
-    def _precalcular_bboxes_espacios(self):
-        """Pre-calcula los bounding boxes de cada espacio"""
-        bboxes = []
-        for puntos in self.estacionamientos:
-            pts = np.array(puntos, dtype=np.int32)
-            x_coords = pts[:, 0]
-            y_coords = pts[:, 1]
-            bbox = {
-                'x1': min(x_coords),
-                'y1': min(y_coords), 
-                'x2': max(x_coords),
-                'y2': max(y_coords),
-                'polygon': pts
-            }
-            bboxes.append(bbox)
-        return bboxes
-
-    def _calcular_iou(self, bbox1, bbox2):
-        """Calcula Intersection over Union optimizado"""
-        x1 = max(bbox1['x1'], bbox2[0])
-        y1 = max(bbox1['y1'], bbox2[1])
-        x2 = min(bbox1['x2'], bbox2[2])
-        y2 = min(bbox1['y2'], bbox2[3])
-        
-        if x2 < x1 or y2 < y1:
-            return 0.0
-            
-        intersection = (x2 - x1) * (y2 - y1)
-        area1 = (bbox1['x2'] - bbox1['x1']) * (bbox1['y2'] - bbox1['y1'])
-        area2 = (bbox2[2] - bbox2[0]) * (bbox2[3] - bbox2[1])
-        union = area1 + area2 - intersection
-        
-        return intersection / union if union > 0 else 0
-
-    def _detectar_vehiculos_optimizado(self, frame):
-        """Detección de vehículos optimizada para velocidad"""
+    def _detectar_vehiculos_simple(self, frame):
+        """Detección simple y directa"""
         try:
-            # Reducir tamaño de imagen para procesamiento más rápido
-            height, width = frame.shape[:2]
-            if width > 640:
-                scale = 640 / width
-                new_width = 640
-                new_height = int(height * scale)
-                frame_resized = cv2.resize(frame, (new_width, new_height))
-            else:
-                frame_resized = frame
+            # Reducir tamaño para más velocidad
+            frame_pequeno = cv2.resize(frame, (640, 360))
             
-            # Detección más rápida con parámetros optimizados
-            results = self.model(
-                frame_resized, 
-                conf=0.5,
-                classes=[2, 3, 5, 7],
-                verbose=False,
-                imgsz=320,
-                half=False,
-            )
+            # Detección básica
+            results = self.model(frame_pequeno, conf=0.5, classes=self.clases_vehiculos, verbose=False)
             
-            vehicles = []
+            detecciones = []
             for result in results:
                 if result.boxes is not None:
                     for box in result.boxes:
-                        confidence = float(box.conf[0])
                         x1, y1, x2, y2 = map(int, box.xyxy[0])
+                        # Escalar coordenadas al tamaño original
+                        scale_x = frame.shape[1] / 640
+                        scale_y = frame.shape[0] / 360
+                        x1 = int(x1 * scale_x)
+                        y1 = int(y1 * scale_y) 
+                        x2 = int(x2 * scale_x)
+                        y2 = int(y2 * scale_y)
                         
-                        # Escalar coordenadas de vuelta si se redimensionó
-                        if width > 640:
-                            x1 = int(x1 / scale)
-                            y1 = int(y1 / scale)
-                            x2 = int(x2 / scale)
-                            y2 = int(y2 / scale)
-                        
-                        vehicles.append({
+                        detecciones.append({
                             'bbox': [x1, y1, x2, y2],
-                            'confidence': confidence
+                            'confidence': float(box.conf[0])
                         })
             
-            return vehicles
+            return detecciones
             
         except Exception as e:
-            print(f"❌ Error en detección YOLO: {e}")
+            print(f"Error en detección: {e}")
             return []
 
-    def _determinar_ocupacion_rapida(self, vehicles):
-        """Determina ocupación optimizada para velocidad"""
-        ocupacion_actual = self.last_ocupacion.copy()
+    def _esta_vehiculo_en_espacio(self, espacio_puntos, vehiculo_bbox):
+        """Verifica si un vehículo está dentro de un espacio"""
+        x1, y1, x2, y2 = vehiculo_bbox
+        centro_x = (x1 + x2) // 2
+        centro_y = (y1 + y2) // 2
         
-        for i, espacio_bbox in enumerate(self.espacio_bboxes):
-            vehiculo_detectado = False
-            
-            for vehicle in vehicles:
-                iou = self._calcular_iou(espacio_bbox, vehicle['bbox'])
-                
-                if iou > 0.25:
-                    vehiculo_detectado = True
-                    break
-            
-            # Actualizar historial simplificado
-            self.historial_detecciones[i].append(vehiculo_detectado)
-            if len(self.historial_detecciones[i]) > self.max_historial:
-                self.historial_detecciones[i].pop(0)
-            
-            # Decisión más rápida
-            if len(self.historial_detecciones[i]) > 0:
-                positivos = sum(self.historial_detecciones[i])
-                ocupacion_actual[i] = positivos > (len(self.historial_detecciones[i]) // 2)
-            
-        return ocupacion_actual
+        # Verificar si el centro del vehículo está dentro del polígono
+        return cv2.pointPolygonTest(espacio_puntos, (centro_x, centro_y), False) >= 0
 
-    def _dibujar_resultados_rapido(self, frame, ocupacion_espacios, reserved_spaces):
-        """Dibuja resultados optimizado para velocidad"""
+    def _determinar_ocupacion(self, detecciones):
+        """Determina qué espacios están ocupados"""
+        ocupacion = [False] * len(self.estacionamientos)
         
-        for i, espacio_bbox in enumerate(self.espacio_bboxes):
-            pts = espacio_bbox['polygon']
-            ocupado = ocupacion_espacios[i]
-            reservado = (i + 1) in reserved_spaces
+        for i, puntos in enumerate(self.estacionamientos):
+            pts = np.array(puntos, dtype=np.int32)
             
-            # Determinar color según estado
-            if reservado:
-                color = (255, 255, 0)  # Amarillo (reservado)
-            elif ocupado:
-                color = (0, 0, 255)    # Rojo (ocupado)
-            else:
-                color = (0, 255, 0)    # Verde (libre)
-            
-            # Dibujar polígono
-            cv2.polylines(frame, [pts], True, color, 2)
-            
-            # Solo el número del espacio
-            cv2.putText(frame, f"{i+1}", (espacio_bbox['x1'], espacio_bbox['y1'] - 5),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+            for det in detecciones:
+                if self._esta_vehiculo_en_espacio(pts, det['bbox']):
+                    ocupacion[i] = True
+                    break
+                    
+        return ocupacion
 
     def generar_frames(self):
-        """Genera frames optimizado para máxima velocidad"""
-        
+        """Generador de frames simplificado"""
         while True:
             success, frame = self.video.read()
 
@@ -190,34 +88,49 @@ class VideoProcessor:
                 self.video.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 continue
 
-            # Detección cada N frames
-            if self.frame_count % self.detection_interval == 0:
-                vehicles = self._detectar_vehiculos_optimizado(frame)
-                self.last_ocupacion = self._determinar_ocupacion_rapida(vehicles)
-                reserved_spaces = self.db.get_active_reservations()
-            
-            # Actualizar estado actual
+            # Detección cada 5 frames para mejor performance
+            if self.frame_count % 5 == 0:
+                self.ultimas_detecciones = self._detectar_vehiculos_simple(frame)
+
+            ocupacion_actual = self._determinar_ocupacion(self.ultimas_detecciones)
+            reserved_spaces = self.db.get_active_reservations()
+
+            # Actualizar estado
             with self.lock:
-                for i in range(len(self.espacio_bboxes)):
+                for i in range(len(self.estacionamientos)):
                     self.estado_actual[i] = {
                         "id": i,
-                        "ocupado": self.last_ocupacion[i],
+                        "ocupado": ocupacion_actual[i],
                         "reservado": (i + 1) in reserved_spaces,
                         "count": 0
                     }
 
             # Dibujar resultados
-            self._dibujar_resultados_rapido(frame, self.last_ocupacion, reserved_spaces)
+            for i, puntos in enumerate(self.estacionamientos):
+                pts = np.array(puntos, dtype=np.int32)
+                ocupado = ocupacion_actual[i]
+                reservado = (i + 1) in reserved_spaces
+                
+                if reservado:
+                    color = (255, 255, 0)  # Amarillo
+                elif ocupado:
+                    color = (0, 0, 255)    # Rojo  
+                else:
+                    color = (0, 255, 0)    # Verde
+                
+                cv2.polylines(frame, [pts], True, color, 2)
+                cv2.putText(frame, f"{i+1}", (pts[0][0], pts[0][1] - 5),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
             # Codificar frame
-            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            ret, buffer = cv2.imencode('.jpg', frame)
             frame_bytes = buffer.tobytes()
 
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
             self.frame_count += 1
-            time.sleep(0.02)
+            time.sleep(0.03)  # Mismo timing que el modelo 1
 
     def get_estado_espacios(self):
         """Retorna el estado actual de los espacios"""
@@ -228,6 +141,6 @@ class VideoProcessor:
             return self.estado_actual.copy()
 
     def __del__(self):
-        """Liberar recursos cuando se destruye el objeto"""
+        """Liberar recursos"""
         if hasattr(self, 'video'):
             self.video.release()
