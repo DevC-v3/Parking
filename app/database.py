@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
 from sqlalchemy.exc import IntegrityError
@@ -190,6 +190,54 @@ class Database:
             
             db.commit()
             return result
+        finally:
+            db.close()
+    
+    def get_all_reservations(self):
+        """Obtener todas las reservas (solo para admin)"""
+        db = self.get_db()
+        try:
+            reservations = db.query(Reservation).order_by(Reservation.created_at.desc()).all()
+            result = []
+            for res in reservations:
+                user = db.query(User).filter(User.id == res.user_id).first()
+                result.append({
+                    'id': res.id,
+                    'user_id': res.user_id,
+                    'username': user.username if user else 'N/A',
+                    'space_number': res.space_number,
+                    'start_time': res.start_time.isoformat() if res.start_time else None,
+                    'end_time': res.end_time.isoformat() if res.end_time else None,
+                    'status': res.status,
+                    'created_at': res.created_at.isoformat() if res.created_at else None
+                })
+            return result
+        finally:
+            db.close()
+    
+    def get_all_users(self):
+        """Obtener todos los usuarios (solo para admin)"""
+        db = self.get_db()
+        try:
+            users = db.query(User).order_by(User.created_at.desc()).all()
+            result = []
+            for user in users:
+                result.append({
+                    'id': user.id,
+                    'username': user.username,
+                    'admin': user.admin,
+                    'created_at': user.created_at.isoformat() if user.created_at else None
+                })
+            return result
+        finally:
+            db.close()
+    
+    def get_user_admin_status(self, user_id):
+        """Obtener el estado de admin de un usuario"""
+        db = self.get_db()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            return user.admin if user else False
         finally:
             db.close()
 

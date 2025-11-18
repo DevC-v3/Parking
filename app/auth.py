@@ -15,6 +15,8 @@ def login():
         if user_id:
             session['user_id'] = user_id
             session['username'] = username
+            # Guardar estado de admin en la sesión
+            session['is_admin'] = db.get_user_admin_status(user_id)
             flash('¡Inicio de sesión exitoso!', 'success')
             return redirect(url_for('mapa'))
         else:
@@ -53,6 +55,25 @@ def login_required(f):
         if 'user_id' not in session:
             flash('Por favor inicia sesión para acceder a esta página', 'warning')
             return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+def admin_required(f):
+    """Decorador para proteger rutas que requieren permisos de administrador"""
+    from functools import wraps
+    
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Por favor inicia sesión para acceder a esta página', 'warning')
+            return redirect(url_for('auth.login'))
+        
+        # Verificar si el usuario es admin
+        if not session.get('is_admin', False):
+            flash('No tienes permisos para acceder a esta página', 'error')
+            return redirect(url_for('mapa'))
+        
         return f(*args, **kwargs)
     
     return decorated_function
