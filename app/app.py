@@ -5,7 +5,7 @@ import os
 from .video_processor import VideoProcessor
 from .video_processorCV import VideoProcessorCV
 from .database import db
-from .auth import auth_bp, login_required
+from .auth import auth_bp, login_required, admin_required
 from .reservations import reservations_bp
 
 # Obtener el directorio base de la aplicación
@@ -57,3 +57,26 @@ def get_estado_espacios():
 @login_required
 def reservas():
     return render_template('reservas.html')
+
+# panel de admin
+@app.route('/admin')
+@admin_required
+def admin():
+    """Panel de administración - solo para usuarios con admin=True"""
+    users = db.get_all_users()
+    reservations = db.get_all_reservations()
+    return render_template('admin.html', users=users, reservations=reservations)
+
+@app.route('/api/admin/reservations')
+@admin_required
+def get_all_reservations():
+    """Obtener todas las reservas (solo admin)"""
+    reservations = db.get_all_reservations()
+    return jsonify(reservations)
+
+@app.route('/api/admin/users')
+@admin_required
+def get_all_users():
+    """Obtener todos los usuarios (solo admin)"""
+    users = db.get_all_users()
+    return jsonify(users)
